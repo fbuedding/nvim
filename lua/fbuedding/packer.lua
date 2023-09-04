@@ -18,12 +18,6 @@ return require('packer').startup(function(use)
   use('theprimeagen/harpoon')
   use('mbbill/undotree')
   use('tpope/vim-fugitive')
-  use({ 'rose-pine/neovim',
-  	as = 'rose-pine' ,
-	config = function()
-		vim.cmd('colorscheme rose-pine')
-  	end
-  })
   use {
 	  'VonHeikemen/lsp-zero.nvim',
 	  branch = 'v2.x',
@@ -40,4 +34,11 @@ return require('packer').startup(function(use)
 	  }
   }
   use('jose-elias-alvarez/null-ls.nvim')
+  use('christoomey/vim-tmux-navigator')
+  use({ 'rose-pine/neovim',
+  as = 'rose-pine' ,
+  config = function()
+    vim.cmd('colorscheme rose-pine-main')
+  end
+})
 end)

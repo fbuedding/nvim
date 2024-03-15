@@ -84,6 +84,16 @@ _G.packer_plugins = {
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/cmp-nvim-lsp",
     url = "https://github.com/hrsh7th/cmp-nvim-lsp"
   },
+  ["go.nvim"] = {
+    loaded = true,
+    path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/go.nvim",
+    url = "https://github.com/ray-x/go.nvim"
+  },
+  ["guihua.lua"] = {
+    loaded = true,
+    path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/guihua.lua",
+    url = "https://github.com/ray-x/guihua.lua"
+  },
   harpoon = {
     loaded = true,
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/harpoon",
@@ -103,11 +113,6 @@ _G.packer_plugins = {
     loaded = true,
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/mason.nvim",
     url = "https://github.com/williamboman/mason.nvim"
-  },
-  ["null-ls.nvim"] = {
-    loaded = true,
-    path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/null-ls.nvim",
-    url = "https://github.com/jose-elias-alvarez/null-ls.nvim"
   },
   ["nvim-cmp"] = {
     loaded = true,
@@ -145,6 +150,11 @@ _G.packer_plugins = {
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/telescope.nvim",
     url = "https://github.com/nvim-telescope/telescope.nvim"
   },
+  ["tree-sitter-templ"] = {
+    loaded = true,
+    path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/tree-sitter-templ",
+    url = "https://github.com/vrischmann/tree-sitter-templ"
+  },
   undotree = {
     loaded = true,
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/undotree",
@@ -154,6 +164,11 @@ _G.packer_plugins = {
     loaded = true,
     path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/vim-fugitive",
     url = "https://github.com/tpope/vim-fugitive"
+  },
+  ["vim-maven-plugin"] = {
+    loaded = true,
+    path = "/Users/fbuedding/.local/share/nvim/site/pack/packer/start/vim-maven-plugin",
+    url = "https://github.com/mikelue/vim-maven-plugin"
   },
   ["vim-tmux-navigator"] = {
     loaded = true,

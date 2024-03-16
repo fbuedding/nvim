@@ -84,18 +84,25 @@ require("lspconfig").tailwindcss.setup({
     }
   }
 })
-
 require("lspconfig").htmx.setup({
-  filetypes = {
-    'templ'
-    -- include any other filetypes where you need tailwindcss
-  },
-  init_options = {
-    userLanguages = {
-        templ = "html"
-    }
-  }
+    on_attach = on_attach,
+    capabilities = capabilities,
+    filetypes = { "html", "templ" },
 })
+--require("lspconfig").htmx.setup({
 
+  --filetypes = {
+    --'templ'
+    -- include any other filetypes where you need tailwindcss
+  --},
+
+  --init_options = {
+    --userLanguages = {
+      --  templ = "html"
+    --}
+  --}
+--})
+
+vim.api.nvim_create_autocmd({ "BufWritePre" }, { pattern = { "*.templ" }, callback = vim.lsp.buf.format })
 
 

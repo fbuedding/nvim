@@ -56,11 +56,21 @@ return require('packer').startup(function(use)
   }
   --  use('jose-elias-alvarez/null-ls.nvim')
   use('christoomey/vim-tmux-navigator')
+
+  --[[
   use({
     'rose-pine/neovim',
     as = 'rose-pine',
     config = function()
       vim.cmd('colorscheme rose-pine-main')
+    end
+  })
+  ]]--
+  use({
+    "folke/tokyonight.nvim",
+    as = 'tokyonight',
+    config = function()
+      vim.cmd('colorscheme tokyonight')
     end
   })
   use("vrischmann/tree-sitter-templ")

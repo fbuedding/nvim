@@ -7,6 +7,9 @@ return require('packer').startup(function(use)
   -- Packer can manage itself
   use 'wbthomason/packer.nvim'
 
+  -- Hex Editor
+  use 'RaafatTurki/hex.nvim'
+
   -- File Explorer
 
   use {
@@ -65,7 +68,7 @@ return require('packer').startup(function(use)
       vim.cmd('colorscheme rose-pine-main')
     end
   })
-  ]]--
+  ]] --
   use({
     "folke/tokyonight.nvim",
     as = 'tokyonight',
@@ -77,4 +80,7 @@ return require('packer').startup(function(use)
 
   -- use 'mfussenegger/nvim-jdtls'
   --  use 'mikelue/vim-maven-plugin('
+  -- Jav#region jdtlsa
+  use 'mfussenegger/nvim-jdtls'
+  --#endregion
 end)

@@ -11,7 +11,7 @@ return require('packer').startup(function(use)
   use 'RaafatTurki/hex.nvim'
 
   -- File Explorer
-
+-- 
   use {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
@@ -22,6 +22,7 @@ return require('packer').startup(function(use)
       -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
     }
   }
+  --
 
   use "nvim-lua/plenary.nvim" -- don't forget to add this one if you don't have it yet!
   use {
@@ -83,4 +84,6 @@ return require('packer').startup(function(use)
   -- Jav#region jdtlsa
   use 'mfussenegger/nvim-jdtls'
   --#endregion
+  -- DAP
+  use 'mfussenegger/nvim-dap'
 end)

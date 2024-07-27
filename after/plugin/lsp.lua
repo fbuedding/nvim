@@ -89,6 +89,7 @@ require("lspconfig").htmx.setup({
   capabilities = capabilities,
   filetypes = { "html", "templ" },
 })
+require("lspconfig").gdscript.setup()
 --require("lspconfig").htmx.setup({
 
 --filetypes = {

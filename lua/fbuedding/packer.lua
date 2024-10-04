@@ -11,7 +11,7 @@ return require('packer').startup(function(use)
   use 'RaafatTurki/hex.nvim'
 
   -- File Explorer
--- 
+  --[[
   use {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
@@ -22,7 +22,7 @@ return require('packer').startup(function(use)
       -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
     }
   }
-  --
+  ]] --
 
   use "nvim-lua/plenary.nvim" -- don't forget to add this one if you don't have it yet!
   use {
@@ -82,8 +82,19 @@ return require('packer').startup(function(use)
   -- use 'mfussenegger/nvim-jdtls'
   --  use 'mikelue/vim-maven-plugin('
   -- Jav#region jdtlsa
-  use 'mfussenegger/nvim-jdtls'
+  --use 'mfussenegger/nvim-jdtls'
   --#endregion
   -- DAP
   use 'mfussenegger/nvim-dap'
+  -- LATEX
+  use({
+    "lervag/vimtex",
+    lazy = false, -- we don't want to lazy load VimTeX
+    -- tag = "v2.15", -- uncomment to pin to a specific release
+    init = function()
+      -- VimTeX configuration goes here, e.g.
+      vim.g.vimtex_view_method = 'zathura'
+
+    end
+  })
 end)

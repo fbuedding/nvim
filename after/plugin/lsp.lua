@@ -3,7 +3,6 @@ local lsp = require("lsp-zero")
 lsp.preset("recommended")
 
 lsp.ensure_installed({
-  'tsserver',
   'rust_analyzer',
   'eslint',
   'lua_ls',
@@ -89,7 +88,7 @@ require("lspconfig").htmx.setup({
   capabilities = capabilities,
   filetypes = { "html", "templ" },
 })
-require("lspconfig").gdscript.setup()
+require("lspconfig").gdscript.setup({})
 --require("lspconfig").htmx.setup({
 
 --filetypes = {

@@ -41,6 +41,20 @@ local custom_format = function()
         end
       end,
     })
+  elseif vim.bo.filetype == "gdscript" then
+    local bufnr = vim.api.nvim_get_current_buf()
+    local filename = vim.api.nvim_buf_get_name(bufnr)
+    local cmd = "gdformat " .. vim.fn.shellescape(filename)
+    print(cmd)
+
+    vim.fn.jobstart(cmd, {
+      on_exit = function()
+        -- Reload the buffer only if it's still the current buffer
+        if vim.api.nvim_get_current_buf() == bufnr then
+          vim.cmd('e!')
+        end
+      end,
+    })
   else
     vim.lsp.buf.format()
   end

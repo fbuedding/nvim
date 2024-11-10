@@ -89,6 +89,9 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- tabstop
+vim.o.tabstop = 4
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -211,6 +214,8 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "tex",
 	callback = function()
 		vim.opt_local.wrap = true
+		vim.opt_local.spelllang = "de"
+		vim.opt_local.spell = true
 		vim.o.linebreak = true
 	end,
 })
@@ -268,6 +273,8 @@ require("lazy").setup({
 			},
 		},
 	},
+	-- Git
+	{ "tpope/vim-fugitive" },
 
 	-- NOTE: Plugins can also be configured to run Lua code when they are loaded.
 	--

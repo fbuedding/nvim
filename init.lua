@@ -217,6 +217,8 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.spelllang = "de"
 		vim.opt_local.spell = true
 		vim.o.linebreak = true
+		vim.keymap.set("n", "j", "gj")
+		vim.keymap.set("n", "k", "gk")
 	end,
 })
 -- Explore
@@ -272,6 +274,46 @@ require("lazy").setup({
 				changedelete = { text = "~" },
 			},
 		},
+	},
+	-- scratch buffers
+	{
+		"cenk1cenk2/scratch.nvim",
+	},
+	{
+		"gaoDean/autolist.nvim",
+		ft = {
+			"markdown",
+			"text",
+			"plaintex",
+			"norg",
+			" ",
+		},
+		config = function()
+			require("autolist").setup()
+
+			vim.keymap.set("i", "<tab>", "<cmd>AutolistTab<cr>")
+			vim.keymap.set("i", "<s-tab>", "<cmd>AutolistShiftTab<cr>")
+			-- vim.keymap.set("i", "<c-t>", "<c-t><cmd>AutolistRecalculate<cr>") -- an example of using <c-t> to indent
+			vim.keymap.set("i", "<CR>", '<CR><cmd>AutolistNewBullet<cr><cmd>echo "list"<CR>')
+			vim.keymap.set("n", "o", "o<cmd>AutolistNewBullet<cr>")
+			vim.keymap.set("n", "O", "O<cmd>AutolistNewBulletBefore<cr>")
+			vim.keymap.set("n", "<CR>", "<cmd>AutolistToggleCheckbox<cr><CR>")
+			-- vim.keymap.set("n", "<C-r>", "<cmd>AutolistRecalculate<cr>")
+
+			-- -- cycle list types with dot-repeat
+			-- vim.keymap.set("n", "<leader>cn", require("autolist").cycle_next_dr, { expr = true })
+			-- vim.keymap.set("n", "<leader>cp", require("autolist").cycle_prev_dr, { expr = true })
+
+			-- -- if you don't want dot-repeat
+			-- -- vim.keymap.set("n", "<leader>cn", "<cmd>AutolistCycleNext<cr>")
+			-- -- vim.keymap.set("n", "<leader>cp", "<cmd>AutolistCycleNext<cr>")
+
+			-- -- functions to recalculate list on edit
+			-- vim.keymap.set("n", ">>", ">><cmd>AutolistRecalculate<cr>")
+			-- vim.keymap.set("n", "<<", "<<<cmd>AutolistRecalculate<cr>")
+			-- vim.keymap.set("n", "dd", "dd<cmd>AutolistRecalculate<cr>")
+			-- vim.keymap.set("v", "d", "d<cmd>AutolistRecalculate<cr>")
+		end,
 	},
 	-- Git
 	{ "tpope/vim-fugitive" },
@@ -428,6 +470,7 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
 			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
 			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
+			vim.keymap.set("n", "<leader>sG", builtin.git_status, { desc = "[S]earch by [G]it status" })
 			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
 			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
 			vim.keymap.set("n", "<leader>st", vim.cmd.TodoTelescope, { desc = "[S]earch [T]odo comments" })
@@ -659,7 +702,7 @@ require("lazy").setup({
 			local servers = {
 				clangd = {},
 				glsl_analyzer = {},
-				-- gopls = {},
+				gopls = {},
 				-- pyright = {},
 				rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -670,7 +713,10 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				-- ts_ls = {},
 				--
-
+				marksman = {
+					capabilities = {},
+					cmd = { "marksman", "server" },
+				},
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},

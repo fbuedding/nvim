@@ -90,7 +90,7 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 -- tabstop
-vim.o.tabstop = 4
+vim.o.tabstop = 8
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
@@ -211,11 +211,13 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-	pattern = "tex",
+	pattern = { "tex", "markdown" },
 	callback = function()
 		vim.opt_local.wrap = true
-		vim.opt_local.spelllang = "de"
-		vim.opt_local.spell = true
+		-- vim.opt_local.spelllang = "de"
+		-- vim.opt_local.spell = true
+		-- vim.opt_local.spell = true
+		-- vim.opt_local.spellsuggest = "fast"
 		vim.o.linebreak = true
 		vim.keymap.set("n", "j", "gj")
 		vim.keymap.set("n", "k", "gk")
@@ -249,7 +251,7 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+	-- "tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
 
 	-- NOTE: Plugins can also be added by using a table,
 	-- with the first argument being the link and the following
@@ -279,44 +281,14 @@ require("lazy").setup({
 	{
 		"cenk1cenk2/scratch.nvim",
 	},
-	{
-		"gaoDean/autolist.nvim",
-		ft = {
-			"markdown",
-			"text",
-			"plaintex",
-			"norg",
-			" ",
-		},
-		config = function()
-			require("autolist").setup()
-
-			vim.keymap.set("i", "<tab>", "<cmd>AutolistTab<cr>")
-			vim.keymap.set("i", "<s-tab>", "<cmd>AutolistShiftTab<cr>")
-			-- vim.keymap.set("i", "<c-t>", "<c-t><cmd>AutolistRecalculate<cr>") -- an example of using <c-t> to indent
-			vim.keymap.set("i", "<CR>", '<CR><cmd>AutolistNewBullet<cr><cmd>echo "list"<CR>')
-			vim.keymap.set("n", "o", "o<cmd>AutolistNewBullet<cr>")
-			vim.keymap.set("n", "O", "O<cmd>AutolistNewBulletBefore<cr>")
-			vim.keymap.set("n", "<CR>", "<cmd>AutolistToggleCheckbox<cr><CR>")
-			-- vim.keymap.set("n", "<C-r>", "<cmd>AutolistRecalculate<cr>")
-
-			-- -- cycle list types with dot-repeat
-			-- vim.keymap.set("n", "<leader>cn", require("autolist").cycle_next_dr, { expr = true })
-			-- vim.keymap.set("n", "<leader>cp", require("autolist").cycle_prev_dr, { expr = true })
-
-			-- -- if you don't want dot-repeat
-			-- -- vim.keymap.set("n", "<leader>cn", "<cmd>AutolistCycleNext<cr>")
-			-- -- vim.keymap.set("n", "<leader>cp", "<cmd>AutolistCycleNext<cr>")
-
-			-- -- functions to recalculate list on edit
-			-- vim.keymap.set("n", ">>", ">><cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("n", "<<", "<<<cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("n", "dd", "dd<cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("v", "d", "d<cmd>AutolistRecalculate<cr>")
-		end,
-	},
 	-- Git
 	{ "tpope/vim-fugitive" },
+	-- Harpoon
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" },
+	},
 
 	-- NOTE: Plugins can also be configured to run Lua code when they are loaded.
 	--
@@ -383,6 +355,7 @@ require("lazy").setup({
 				{ "<leader>s", group = "[S]earch" },
 				{ "<leader>w", group = "[W]orkspace" },
 				{ "<leader>t", group = "[T]oggle" },
+				{ "<leader>g", group = "[G]it" },
 				{ "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
 			},
 		},
@@ -717,6 +690,16 @@ require("lazy").setup({
 					capabilities = {},
 					cmd = { "marksman", "server" },
 				},
+				-- ltex = {
+				-- 	settings = {
+				-- 		ltex = {
+				-- 			language = "de-DE",
+				-- 			additionalRules = {
+				-- 				languageModel = "~/models/ngrams/",
+				-- 			},
+				-- 		},
+				-- 	},
+				-- },
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},
@@ -827,12 +810,12 @@ require("lazy").setup({
 					-- `friendly-snippets` contains a variety of premade snippets.
 					--    See the README about individual language/framework/plugin snippets:
 					--    https://github.com/rafamadriz/friendly-snippets
-					-- {
-					--   'rafamadriz/friendly-snippets',
-					--   config = function()
-					--     require('luasnip.loaders.from_vscode').lazy_load()
-					--   end,
-					-- },
+					{
+						"rafamadriz/friendly-snippets",
+						config = function()
+							require("luasnip.loaders.from_vscode").lazy_load()
+						end,
+					},
 				},
 			},
 			"saadparwaiz1/cmp_luasnip",

@@ -120,9 +120,9 @@ vim.opt.showmode = false
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 -- TODO: Ich mag gar nicht wie das jetzt ist
-vim.schedule(function()
-	vim.opt.clipboard = "unnamedplus"
-end)
+-- vim.schedule(function()
+-- 	vim.opt.clipboard = "unnamedplus"
+-- end)
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -170,6 +170,13 @@ vim.wo.wrap = false
 --  See `:help hlsearch`
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
+-- [[ yank to clipboard ]]
+
+vim.keymap.set({ "n", "v" }, "<leader>y", '"+y', { desc = "Yank to clipboard" })
+vim.keymap.set({ "n" }, "<leader>Y", '"+yg_', { silent = true, desc = "Yank rest of line to clipboard" })
+vim.keymap.set({ "n", "v" }, "<leader>p", '"+p', { desc = "Paste from system clipboard" })
+vim.keymap.set({ "n", "v" }, "<leader>P", '"+P', { desc = "Paste from system clipboard" })
+
 -- Diagnostic keymaps
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
@@ -182,10 +189,10 @@ vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagn
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- TIP: Disable arrow keys in normal mode
-vim.keymap.set("n", "<left>", '<cmd>echo "Use h to move!!"<CR>')
-vim.keymap.set("n", "<right>", '<cmd>echo "Use l to move!!"<CR>')
-vim.keymap.set("n", "<up>", '<cmd>echo "Use k to move!!"<CR>')
-vim.keymap.set("n", "<down>", '<cmd>echo "Use j to move!!"<CR>')
+-- vim.keymap.set("n", "<left>", '<cmd>echo "Use h to move!!"<CR>')
+-- vim.keymap.set("n", "<right>", '<cmd>echo "Use l to move!!"<CR>')
+-- vim.keymap.set("n", "<up>", '<cmd>echo "Use k to move!!"<CR>')
+-- vim.keymap.set("n", "<down>", '<cmd>echo "Use j to move!!"<CR>')
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -219,6 +226,13 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.o.linebreak = true
 		vim.keymap.set("n", "j", "gj")
 		vim.keymap.set("n", "k", "gk")
+	end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "make",
+	callback = function()
+		print("Makefile detected!")
+		vim.opt_local.expandtab = false
 	end,
 })
 -- Explore
@@ -275,46 +289,42 @@ require("lazy").setup({
 			},
 		},
 	},
-	-- scratch buffers
-	{
-		"cenk1cenk2/scratch.nvim",
-	},
-	{
-		"gaoDean/autolist.nvim",
-		ft = {
-			"markdown",
-			"text",
-			"plaintex",
-			"norg",
-			" ",
-		},
-		config = function()
-			require("autolist").setup()
-
-			vim.keymap.set("i", "<tab>", "<cmd>AutolistTab<cr>")
-			vim.keymap.set("i", "<s-tab>", "<cmd>AutolistShiftTab<cr>")
-			-- vim.keymap.set("i", "<c-t>", "<c-t><cmd>AutolistRecalculate<cr>") -- an example of using <c-t> to indent
-			vim.keymap.set("i", "<CR>", '<CR><cmd>AutolistNewBullet<cr><cmd>echo "list"<CR>')
-			vim.keymap.set("n", "o", "o<cmd>AutolistNewBullet<cr>")
-			vim.keymap.set("n", "O", "O<cmd>AutolistNewBulletBefore<cr>")
-			vim.keymap.set("n", "<CR>", "<cmd>AutolistToggleCheckbox<cr><CR>")
-			-- vim.keymap.set("n", "<C-r>", "<cmd>AutolistRecalculate<cr>")
-
-			-- -- cycle list types with dot-repeat
-			-- vim.keymap.set("n", "<leader>cn", require("autolist").cycle_next_dr, { expr = true })
-			-- vim.keymap.set("n", "<leader>cp", require("autolist").cycle_prev_dr, { expr = true })
-
-			-- -- if you don't want dot-repeat
-			-- -- vim.keymap.set("n", "<leader>cn", "<cmd>AutolistCycleNext<cr>")
-			-- -- vim.keymap.set("n", "<leader>cp", "<cmd>AutolistCycleNext<cr>")
-
-			-- -- functions to recalculate list on edit
-			-- vim.keymap.set("n", ">>", ">><cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("n", "<<", "<<<cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("n", "dd", "dd<cmd>AutolistRecalculate<cr>")
-			-- vim.keymap.set("v", "d", "d<cmd>AutolistRecalculate<cr>")
-		end,
-	},
+	-- {
+	-- 	"gaoDean/autolist.nvim",
+	-- 	ft = {
+	-- 		"markdown",
+	-- 		"text",
+	-- 		"plaintex",
+	-- 		"norg",
+	-- 		" ",
+	-- 	},
+	-- 	config = function()
+	-- 		require("autolist").setup()
+	--
+	-- 		vim.keymap.set("i", "<tab>", "<cmd>AutolistTab<cr>")
+	-- 		vim.keymap.set("i", "<s-tab>", "<cmd>AutolistShiftTab<cr>")
+	-- 		-- vim.keymap.set("i", "<c-t>", "<c-t><cmd>AutolistRecalculate<cr>") -- an example of using <c-t> to indent
+	-- 		vim.keymap.set("i", "<CR>", '<CR><cmd>AutolistNewBullet<cr><cmd>echo "list"<CR>')
+	-- 		vim.keymap.set("n", "o", "o<cmd>AutolistNewBullet<cr>")
+	-- 		vim.keymap.set("n", "O", "O<cmd>AutolistNewBulletBefore<cr>")
+	-- 		vim.keymap.set("n", "<CR>", "<cmd>AutolistToggleCheckbox<cr><CR>")
+	-- 		-- vim.keymap.set("n", "<C-r>", "<cmd>AutolistRecalculate<cr>")
+	--
+	-- 		-- -- cycle list types with dot-repeat
+	-- 		-- vim.keymap.set("n", "<leader>cn", require("autolist").cycle_next_dr, { expr = true })
+	-- 		-- vim.keymap.set("n", "<leader>cp", require("autolist").cycle_prev_dr, { expr = true })
+	--
+	-- 		-- -- if you don't want dot-repeat
+	-- 		-- -- vim.keymap.set("n", "<leader>cn", "<cmd>AutolistCycleNext<cr>")
+	-- 		-- -- vim.keymap.set("n", "<leader>cp", "<cmd>AutolistCycleNext<cr>")
+	--
+	-- 		-- -- functions to recalculate list on edit
+	-- 		-- vim.keymap.set("n", ">>", ">><cmd>AutolistRecalculate<cr>")
+	-- 		-- vim.keymap.set("n", "<<", "<<<cmd>AutolistRecalculate<cr>")
+	-- 		-- vim.keymap.set("n", "dd", "dd<cmd>AutolistRecalculate<cr>")
+	-- 		-- vim.keymap.set("v", "d", "d<cmd>AutolistRecalculate<cr>")
+	-- 	end,
+	-- },
 	-- Git
 	{ "tpope/vim-fugitive" },
 
@@ -501,6 +511,26 @@ require("lazy").setup({
 			end, { desc = "[S]earch [N]eovim files" })
 		end,
 	},
+	{
+		"ThePrimeagen/harpoon",
+		config = function()
+			vim.keymap.set("n", "<leader>a", require("harpoon.mark").add_file, { desc = "Harpooning file" })
+			vim.keymap.set("n", "<C-E>", require("harpoon.ui").toggle_quick_menu, { desc = "Open harpoon quick menu" })
+
+			vim.keymap.set("n", "g1", function()
+				require("harpoon.ui").nav_file(1)
+			end, { desc = "Open harpoon quick menu" })
+			vim.keymap.set("n", "g2", function()
+				require("harpoon.ui").nav_file(2)
+			end, { desc = "Open harpoon quick menu" })
+			vim.keymap.set("n", "g3", function()
+				require("harpoon.ui").nav_file(3)
+			end, { desc = "Open harpoon quick menu" })
+			vim.keymap.set("n", "g4", function()
+				require("harpoon.ui").nav_file(4)
+			end, { desc = "Open harpoon quick menu" })
+		end,
+	},
 	-- LATEX
 	{
 		"lervag/vimtex",
@@ -636,7 +666,7 @@ require("lazy").setup({
 					map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction", { "n", "x" })
 
 					-- WARN: This is not Goto Definition, this is Goto Declaration.
-					--  For example, in C this would take you to the header.
+					--  For example, in C this would tae you to the header.
 					map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 					-- diagnostic
 					map("vd", vim.diagnostic.open_float, "[V]iew [D]iagnostic")
@@ -649,7 +679,7 @@ require("lazy").setup({
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
 						local highlight_augroup =
-							vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
+							vim.api.nvim_create_augroup("ickstart-lsp-highlight", { clear = false })
 						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 							buffer = event.buf,
 							group = highlight_augroup,

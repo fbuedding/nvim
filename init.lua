@@ -1,5 +1,4 @@
 --[[
-
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
@@ -82,6 +81,8 @@ I hope you enjoy your Neovim journey,
 
 P.S. You can delete this when you're done too. It's your config now! :)
 --]]
+--
+vim.filetype.add({ extension = { templ = "templ" } })
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
@@ -91,6 +92,7 @@ vim.g.maplocalleader = " "
 
 -- tabstop
 vim.o.tabstop = 4
+vim.o.expandtab = true
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
@@ -556,6 +558,7 @@ require("lazy").setup({
 	},
 
 	-- LSP Plugins
+	-- { "joerdav/templ.vim" },
 	{
 		-- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
 		-- used for completion, annotations and signatures of Neovim apis
@@ -586,6 +589,8 @@ require("lazy").setup({
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
+			vim.lsp.config["gdscript"] = {}
+			vim.lsp.enable("gdscript")
 			-- Brief aside: **What is LSP?**
 			--
 			-- LSP is an initialism you've probably heard, but might not understand what it is.
@@ -615,6 +620,7 @@ require("lazy").setup({
 			--    That is to say, every time a new file is opened that is associated with
 			--    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
 			--    function will be executed to configure the current buffer
+
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("kickstart-lsp-attach", { clear = true }),
 				callback = function(event)
@@ -672,14 +678,14 @@ require("lazy").setup({
 					map("vd", vim.diagnostic.open_float, "[V]iew [D]iagnostic")
 
 					-- The following two autocommands are used to highlight references of the
-					-- word under your cursor when your cursor rests there for a little while.
+					-- word under your cursor when your cursor rests there for a little while.ini
 					--    See `:help CursorHold` for information about when this is executed
 					--
 					-- When you move your cursor, the highlights will be cleared (the second autocommand).
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
-					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+					if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
 						local highlight_augroup =
-							vim.api.nvim_create_augroup("ickstart-lsp-highlight", { clear = false })
+							vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
 						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 							buffer = event.buf,
 							group = highlight_augroup,
@@ -705,7 +711,7 @@ require("lazy").setup({
 					-- code, if the language server you are using supports them
 					--
 					-- This may be unwanted, since they displace some of your code
-					if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+					if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
 						map("<leader>th", function()
 							vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
 						end, "[T]oggle Inlay [H]ints")
@@ -730,9 +736,20 @@ require("lazy").setup({
 			--  - settings (table): Override the default settings passed when initializing the server.
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
+
 				clangd = {},
 				glsl_analyzer = {},
-				gopls = {},
+				gopls = {
+					analyses = {
+						unusedparams = true,
+					},
+					staticcheck = true,
+					gofumpt = true,
+					capabilities = capabilities,
+				},
+				templ = { capabilities = capabilities, filetypes = { "html", "templ" } },
+				html = { capabilities = capabilities, filetypes = { "html", "templ" } },
+				tailwindcss = { capabilities = capabilities, filetypes = { "html", "templ" } },
 				-- pyright = {},
 				rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -828,6 +845,7 @@ require("lazy").setup({
 			end,
 			formatters_by_ft = {
 				lua = { "stylua" },
+				gdscript = { "gdformat" },
 				-- Conform can also run multiple formatters sequentially
 				-- python = { "isort", "black" },
 				--
@@ -1090,8 +1108,9 @@ require("lazy").setup({
 	--
 	--  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
 	--    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-	-- { import = 'custom.plugins' },
+	{ import = "custom.plugins" },
 }, {
+
 	ui = {
 		-- If you are using a Nerd Font: set icons to an empty table which will use the
 		-- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
@@ -1112,6 +1131,41 @@ require("lazy").setup({
 		},
 	},
 })
-
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Function to find Godot project root directory
+local function find_godot_project_root()
+	local cwd = vim.fn.getcwd()
+	local search_paths = { "", "/.." }
+
+	for _, relative_path in ipairs(search_paths) do
+		local project_file = cwd .. relative_path .. "/project.godot"
+		if vim.uv.fs_stat(project_file) then
+			return cwd .. relative_path
+		end
+	end
+
+	return nil
+end
+
+-- Function to check if server is already running
+local function is_server_running(project_path)
+	local server_pipe = project_path .. "/server.pipe"
+	return vim.uv.fs_stat(server_pipe) ~= nil
+end
+
+-- Function to start Godot server if needed
+local function start_godot_server_if_needed()
+	local godot_project_path = find_godot_project_root()
+
+	if godot_project_path and not is_server_running(godot_project_path) then
+		vim.fn.serverstart(godot_project_path .. "/server.pipe")
+		return true
+	end
+
+	return false
+end
+
+-- Main execution
+start_godot_server_if_needed()

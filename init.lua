@@ -154,8 +154,7 @@ vim.opt.splitbelow = true
 --  See `:help 'list'`
 --  and `:help 'listchars'`
 vim.opt.list = true
-vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
-
+vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣", extends = "⟩", precedes = "⟨" }
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = "split"
 
@@ -809,7 +808,7 @@ require("lazy").setup({
 				-- ts_ls = {},
 				--
 				marksman = {
-					capabilities = {},
+					capabilities = capabilities,
 					cmd = { "marksman", "server" },
 				},
 				lua_ls = {
@@ -826,7 +825,17 @@ require("lazy").setup({
 						},
 					},
 				},
-				prettierd = {},
+				prettierd = {
+					capabilities = capabilities,
+					filetypes = { "css", "html" },
+				},
+				prettier = {
+					capabilities = capabilities,
+					filetypes = { "css", "html" },
+				},
+				pyright = {
+					capabilities = capabilities,
+				},
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -897,7 +906,7 @@ require("lazy").setup({
 				gdscript = { "gdformat" },
 				templ = { "templ" },
 				-- Conform can also run multiple formatters sequentially
-				-- python = { "isort", "black" },
+				python = { "isort", "black" },
 				--
 				-- You can use 'stop_after_first' to run the first available formatter from the list
 				css = { "prettierd", "prettier", stop_after_first = true },
@@ -1051,7 +1060,11 @@ require("lazy").setup({
 						end,
 					},
 				},
-				opts = {},
+				opts = {
+					region_check_events = "CursorMoved,CursorMovedI",
+					-- Löscht Snippet-Knoten ordentlich, wenn du Text entfernst
+					delete_check_events = "TextChanged,TextChangedI",
+				},
 			},
 			"folke/lazydev.nvim",
 		},
@@ -1120,23 +1133,37 @@ require("lazy").setup({
 			signature = { enabled = true },
 		},
 	},
-	{ -- You can easily change to a different colorscheme.
-		-- Change the name of the colorscheme plugin below, and then
-		-- change the command in the config to whatever the name of that colorscheme is.
-		--
-		-- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-		"folke/tokyonight.nvim",
-		priority = 1000, -- Make sure to load this before all the other start plugins.
-		init = function()
-			-- Load the colorscheme here.
-			-- Like many other themes, this one has different styles, and you could load
-			-- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-			vim.cmd.colorscheme("tokyonight-storm")
-
-			-- You can configure highlights by doing something like:
-			vim.cmd.hi("Comment gui=none")
+	-- { -- You can easily change to a different colorscheme.
+	-- 	-- Change the name of the colorscheme plugin below, and then
+	-- 	-- change the command in the config to whatever the name of that colorscheme is.
+	-- 	--
+	-- 	-- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+	-- 	"folke/tokyonight.nvim",
+	-- 	priority = 1000, -- Make sure to load this before all the other start plugins.
+	-- 	init = function()
+	-- 		-- Load the colorscheme here.
+	-- 		-- Like many other themes, this one has different styles, and you could load
+	-- 		-- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+	-- 		vim.cmd.colorscheme("tokyonight-storm")
+	--
+	-- 		-- You can configure highlights by doing something like:
+	-- 		vim.cmd.hi("Comment gui=none")
+	-- 	end,
+	-- },
+	{
+		"rose-pine/neovim",
+		name = "rose-pine",
+		config = function()
+			vim.cmd("colorscheme rose-pine-moon")
 		end,
 	},
+	-- {
+	-- 	"bjarneo/pixel.nvim",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.cmd.colorscheme("pixel")
+	-- 	end,
+	-- },
 
 	-- Highlight todo, notes, etc in comments
 	{

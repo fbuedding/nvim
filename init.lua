@@ -409,8 +409,17 @@ require("lazy").setup({
 
 	{ -- Fuzzy Finder (files, lsp, etc)
 		"nvim-telescope/telescope.nvim",
+		-- By default, Telescope is included and acts as your picker for everything.
+
+		-- If you would like to switch to a different picker (like snacks, or fzf-lua)
+		-- you can disable the Telescope plugin by setting enabled to false and enable
+		-- your replacement picker by requiring it explicitly (e.g. 'custom.plugins.snacks')
+
+		-- Note: If you customize your config for yourself,
+		-- it’s best to remove the Telescope plugin config entirely
+		-- instead of just disabling it here, to keep your config clean.
+		enabled = true,
 		event = "VimEnter",
-		branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			{ -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -453,25 +462,18 @@ require("lazy").setup({
 
 			-- [[ Configure Telescope ]]
 			-- See `:help telescope` and `:help telescope.setup()`
-			-- Telescope ignore patterns
-			local telescope_ignore_patterns = {
-				"%_templ.go",
-			}
 			require("telescope").setup({
 				-- You can put your default mappings / updates / etc. in here
 				--  All the info you're looking for is in `:help telescope.setup()`
 				--
-				defaults = {
-					file_ignore_patterns = telescope_ignore_patterns,
-					mappings = {
-						i = { ["<c-i>"] = "to_fuzzy_refine" },
-					},
-				},
-				pickers = {},
+				-- defaults = {
+				--   mappings = {
+				--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+				--   },
+				-- },
+				-- pickers = {}
 				extensions = {
-					["ui-select"] = {
-						require("telescope.themes").get_dropdown(),
-					},
+					["ui-select"] = { require("telescope.themes").get_dropdown() },
 				},
 			})
 
@@ -485,16 +487,71 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
 			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
 			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
-			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
+			vim.keymap.set({ "n", "v" }, "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
 			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
 			vim.keymap.set("n", "<leader>sG", builtin.git_status, { desc = "[S]earch by [G]it status" })
 			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
 			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
-			vim.keymap.set("n", "<leader>st", vim.cmd.TodoTelescope, { desc = "[S]earch [T]odo comments" })
 			vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+			vim.keymap.set("n", "<leader>sc", builtin.commands, { desc = "[S]earch [C]ommands" })
+			vim.keymap.set("n", "<leader>st", vim.cmd.TodoTelescope, { desc = "[S]earch [T]odo comments" })
 			vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "[ ] Find existing buffers" })
 
-			-- Slightly advanced example of overriding default behavior and theme
+			-- This runs on LSP attach per buffer (see main LSP attach function in 'neovim/nvim-lspconfig' config for more info,
+			-- it is better explained there). This allows easily switching between pickers if you prefer using something else!
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = vim.api.nvim_create_augroup("telescope-lsp-attach", { clear = true }),
+				callback = function(event)
+					local buf = event.buf
+
+					-- Find references for the word under your cursor.
+					vim.keymap.set("n", "grr", builtin.lsp_references, { buffer = buf, desc = "[G]oto [R]eferences" })
+
+					-- Jump to the implementation of the word under your cursor.
+					-- Useful when your language has ways of declaring types without an actual implementation.
+					vim.keymap.set(
+						"n",
+						"gri",
+						builtin.lsp_implementations,
+						{ buffer = buf, desc = "[G]oto [I]mplementation" }
+					)
+
+					-- Jump to the definition of the word under your cursor.
+					-- This is where a variable was first declared, or where a function is defined, etc.
+					-- To jump back, press <C-t>.
+					vim.keymap.set("n", "grd", builtin.lsp_definitions, { buffer = buf, desc = "[G]oto [D]efinition" })
+
+					-- Fuzzy find all the symbols in your current document.
+					-- Symbols are things like variables, functions, types, etc.
+					vim.keymap.set(
+						"n",
+						"gO",
+						builtin.lsp_document_symbols,
+						{ buffer = buf, desc = "Open Document Symbols" }
+					)
+
+					-- Fuzzy find all the symbols in your current workspace.
+					-- Similar to document symbols, except searches over your entire project.
+					vim.keymap.set(
+						"n",
+						"gW",
+						builtin.lsp_dynamic_workspace_symbols,
+						{ buffer = buf, desc = "Open Workspace Symbols" }
+					)
+
+					-- Jump to the type of the word under your cursor.
+					-- Useful when you're not sure what type a variable is and you want to see
+					-- the definition of its *type*, not where it was *defined*.
+					vim.keymap.set(
+						"n",
+						"grt",
+						builtin.lsp_type_definitions,
+						{ buffer = buf, desc = "[G]oto [T]ype Definition" }
+					)
+				end,
+			})
+
+			-- Override default behavior and theme when searching
 			vim.keymap.set("n", "<leader>/", function()
 				-- You can pass additional configuration to Telescope to change the theme, layout, etc.
 				builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
@@ -518,6 +575,7 @@ require("lazy").setup({
 			end, { desc = "[S]earch [N]eovim files" })
 		end,
 	},
+
 	{
 		"ThePrimeagen/harpoon",
 		config = function()
@@ -784,21 +842,32 @@ require("lazy").setup({
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
 
-				clangd = {},
-				glsl_analyzer = {},
-				gopls = {
-					analyses = {
-						unusedparams = true,
-					},
-					staticcheck = true,
-					gofumpt = true,
+				-- clangd = {},
+				-- glsl_analyzer = {},
+				-- gopls = {
+				-- 	analyses = {
+				-- 		unusedparams = true,
+				-- 	},
+				-- 	staticcheck = true,
+				-- 	gofumpt = true,
+				-- 	capabilities = capabilities,
+				-- },
+				omnisharp = {
 					capabilities = capabilities,
+					cmd = { "omnisharp" }, -- Mason installiert das Binary
+					enable_editorconfig_support = true,
+					enable_ms_build_load_projects_on_demand = false,
+					enable_roslyn_analyzers = true,
+					organize_imports_on_format = true,
+					enable_import_completion = true,
+
+					analyze_open_documents_only = false,
 				},
-				templ = { capabilities = capabilities, filetypes = { "html", "templ" } },
+				-- templ = { capabilities = capabilities, filetypes = { "html", "templ" } },
 				html = { capabilities = capabilities, filetypes = { "html", "templ" } },
 				tailwindcss = { capabilities = capabilities, filetypes = { "html", "templ" } },
 				-- pyright = {},
-				rust_analyzer = {},
+				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 				--
 				-- Some languages (like typescript) have entire language plugins that can be useful:
@@ -825,17 +894,17 @@ require("lazy").setup({
 						},
 					},
 				},
-				prettierd = {
-					capabilities = capabilities,
-					filetypes = { "css", "html" },
-				},
-				prettier = {
-					capabilities = capabilities,
-					filetypes = { "css", "html" },
-				},
-				pyright = {
-					capabilities = capabilities,
-				},
+				-- prettierd = {
+				-- 	capabilities = capabilities,
+				-- 	filetypes = { "css", "html" },
+				-- },
+				-- prettier = {
+				-- 	capabilities = capabilities,
+				-- 	filetypes = { "css", "html" },
+				-- },
+				-- pyright = {
+				-- 	capabilities = capabilities,
+				-- },
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -851,6 +920,9 @@ require("lazy").setup({
 			local ensure_installed = vim.tbl_keys(servers or {})
 			vim.list_extend(ensure_installed, {
 				"stylua", -- Used to format Lua code
+				"omnisharp",
+				"csharpier",
+				"netcoredbg",
 			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
@@ -910,6 +982,8 @@ require("lazy").setup({
 				--
 				-- You can use 'stop_after_first' to run the first available formatter from the list
 				css = { "prettierd", "prettier", stop_after_first = true },
+				cs = { "csharpier" },
+				markdown = { "markdownlint-cli2" },
 			},
 		},
 	},
@@ -1227,11 +1301,13 @@ require("lazy").setup({
 	},
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
+		lazy = false,
 		build = ":TSUpdate",
-		main = "nvim-treesitter.configs", -- Sets main module to use for opts
-		-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-		opts = {
-			ensure_installed = {
+		-- branch = "main",
+		-- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
+		config = function()
+			-- ensure basic parser are installed
+			local parsers = {
 				"bash",
 				"c",
 				"diff",
@@ -1243,24 +1319,70 @@ require("lazy").setup({
 				"query",
 				"vim",
 				"vimdoc",
-			},
-			-- Autoinstall languages that are not installed
-			auto_install = true,
-			highlight = {
-				enable = true,
-				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-				--  If you are experiencing weird indenting issues, add the language to
-				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
-				additional_vim_regex_highlighting = { "ruby" },
-			},
-			indent = { enable = true, disable = { "ruby" } },
-		},
-		-- There are additional nvim-treesitter modules that you can use to interact
-		-- with nvim-treesitter. You should go explore a few and see what interests you:
-		--
-		--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-		--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-		--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+			}
+			require("nvim-treesitter").install(parsers)
+
+			---@param buf integer
+			---@param language string
+			local function treesitter_try_attach(buf, language)
+				-- check if parser exists and load it
+				if not vim.treesitter.language.add(language) then
+					return
+				end
+				-- enables syntax highlighting and other treesitter features
+				vim.treesitter.start(buf, language)
+
+				-- enables treesitter based folds
+				-- for more info on folds see `:help folds`
+				-- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+				-- vim.wo.foldmethod = 'expr'
+
+				-- check if treesitter indentation is available for this language, and if so enable it
+				-- in case there is no indent query, the indentexpr will fallback to the vim's built in one
+				local has_indent_query = vim.treesitter.query.get(language, "indents") ~= nil
+
+				-- enables treesitter based indentation
+				if has_indent_query then
+					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end
+			end
+
+			local available_parsers = require("nvim-treesitter").get_available()
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
+					local buf, filetype = args.buf, args.match
+
+					local language = vim.treesitter.language.get_lang(filetype)
+					if not language then
+						return
+					end
+
+					local installed_parsers = require("nvim-treesitter").get_installed("parsers")
+
+					if vim.tbl_contains(installed_parsers, language) then
+						-- enable the parser if it is installed
+						treesitter_try_attach(buf, language)
+					elseif vim.tbl_contains(available_parsers, language) then
+						-- if a parser is available in `nvim-treesitter` auto install it, and enable it after the installation is done
+						require("nvim-treesitter").install(language):await(function()
+							treesitter_try_attach(buf, language)
+						end)
+					else
+						-- try to enable treesitter features in case the parser exists but is not available from `nvim-treesitter`
+						treesitter_try_attach(buf, language)
+					end
+				end,
+			})
+		end,
+	},
+	{
+		"iamcco/markdown-preview.nvim",
+		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+		build = "cd app && yarn install",
+		init = function()
+			vim.g.mkdp_filetypes = { "markdown" }
+		end,
+		ft = { "markdown" },
 	},
 
 	-- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the

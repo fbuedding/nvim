@@ -655,6 +655,15 @@ require("lazy").setup({
 		config = function()
 			vim.lsp.config["gdscript"] = {}
 			vim.lsp.enable("gdscript")
+
+			-- Terraform / Terragrunt (hcl files)
+			vim.lsp.config["terraformls"] = {
+				filetypes = { "terraform", "terraform-vars", "hcl" },
+				-- override default on_attach: this nvim build's vim.lsp.codelens
+				-- has no `enable` function, which crashes lspconfig's default on_attach
+				on_attach = function() end,
+			}
+			vim.lsp.enable("terraformls")
 			-- Brief aside: **What is LSP?**
 			--
 			-- LSP is an initialism you've probably heard, but might not understand what it is.
@@ -923,6 +932,7 @@ require("lazy").setup({
 				"omnisharp",
 				"csharpier",
 				"netcoredbg",
+				"terraform-ls",
 			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 

@@ -98,6 +98,10 @@ vim.o.expandtab = true
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+-- Hide *.gd.uid files in :Explore (netrw)
+vim.g.netrw_list_hide = [[\(^\|\s\s\)\zs\.\S\+,\.gd\.uid$]]
+vim.g.netrw_hide = 1
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE  You can change these options as you wish!
@@ -467,6 +471,7 @@ require("lazy").setup({
 				--  All the info you're looking for is in `:help telescope.setup()`
 				--
 				defaults = {
+					file_ignore_patterns = { "%.gd%.uid$" },
 					mappings = {
 						i = { ["<C-d>"] = require("telescope.actions").delete_buffer },
 					},
@@ -656,8 +661,43 @@ require("lazy").setup({
 			"saghen/blink.cmp",
 		},
 		config = function()
-			vim.lsp.config["gdscript"] = {}
+			vim.lsp.config["gdscript"] = {
+				flags = {
+					debounce_text_changes = 150,
+				},
+			}
 			vim.lsp.enable("gdscript")
+
+			-- Auto-refresh Godot LSP diagnostics on save and InsertLeave (forces Godot to re-publish error icons)
+			local function refresh_godot_diagnostics(bufnr)
+				local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "gdscript" })
+				if #clients == 0 then
+					return
+				end
+				local uri = vim.uri_from_bufnr(bufnr)
+				local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+				local text = table.concat(lines, "\n")
+				for _, client in ipairs(clients) do
+					client:notify("textDocument/didClose", {
+						textDocument = { uri = uri },
+					})
+					client:notify("textDocument/didOpen", {
+						textDocument = {
+							uri = uri,
+							languageId = "gdscript",
+							version = 1,
+							text = text,
+						},
+					})
+				end
+			end
+
+			vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
+				pattern = { "*.gd", "*.gdscript" },
+				callback = function(args)
+					refresh_godot_diagnostics(args.buf)
+				end,
+			})
 
 			-- Terraform / Terragrunt (hcl files)
 			vim.lsp.config["terraformls"] = {
@@ -933,9 +973,10 @@ require("lazy").setup({
 			vim.list_extend(ensure_installed, {
 				"stylua", -- Used to format Lua code
 				"omnisharp",
-				"csharpier",
+				-- "csharpier",
 				"netcoredbg",
 				"terraform-ls",
+				"gdtoolkit", -- GDScript formatter (gdformat) and linter (gdlint)
 			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
@@ -1142,8 +1183,8 @@ require("lazy").setup({
 					{
 						"rafamadriz/friendly-snippets",
 						config = function()
-							require("luasnip.loaders.from_vscode").lazy_load()
-							require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
+							require("luasnip.loaders.from_vscode").lazy_load({ exclude = { "gdscript" } })
+							require("luasnip.loaders.from_lua").load({ paths = vim.fn.stdpath("config") .. "/snippets" })
 						end,
 					},
 				},
@@ -1314,13 +1355,11 @@ require("lazy").setup({
 	},
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
 		lazy = false,
 		build = ":TSUpdate",
-		-- branch = "main",
-		-- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
-		config = function()
-			-- ensure basic parser are installed
-			local parsers = {
+		opts = {
+			ensure_installed = {
 				"bash",
 				"c",
 				"diff",
@@ -1332,60 +1371,16 @@ require("lazy").setup({
 				"query",
 				"vim",
 				"vimdoc",
-			}
-			require("nvim-treesitter").install(parsers)
-
-			---@param buf integer
-			---@param language string
-			local function treesitter_try_attach(buf, language)
-				-- check if parser exists and load it
-				if not vim.treesitter.language.add(language) then
-					return
-				end
-				-- enables syntax highlighting and other treesitter features
-				vim.treesitter.start(buf, language)
-
-				-- enables treesitter based folds
-				-- for more info on folds see `:help folds`
-				-- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-				-- vim.wo.foldmethod = 'expr'
-
-				-- check if treesitter indentation is available for this language, and if so enable it
-				-- in case there is no indent query, the indentexpr will fallback to the vim's built in one
-				local has_indent_query = vim.treesitter.query.get(language, "indents") ~= nil
-
-				-- enables treesitter based indentation
-				if has_indent_query then
-					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-				end
+			},
+			auto_install = true,
+			highlight = { enable = true },
+			indent = { enable = true },
+		},
+		config = function(_, opts)
+			require("nvim-treesitter").setup(opts)
+			if opts.ensure_installed then
+				require("nvim-treesitter").install(opts.ensure_installed)
 			end
-
-			local available_parsers = require("nvim-treesitter").get_available()
-			vim.api.nvim_create_autocmd("FileType", {
-				callback = function(args)
-					local buf, filetype = args.buf, args.match
-
-					local language = vim.treesitter.language.get_lang(filetype)
-					if not language then
-						return
-					end
-
-					local installed_parsers = require("nvim-treesitter").get_installed("parsers")
-
-					if vim.tbl_contains(installed_parsers, language) then
-						-- enable the parser if it is installed
-						treesitter_try_attach(buf, language)
-					elseif vim.tbl_contains(available_parsers, language) then
-						-- if a parser is available in `nvim-treesitter` auto install it, and enable it after the installation is done
-						require("nvim-treesitter").install(language):await(function()
-							treesitter_try_attach(buf, language)
-						end)
-					else
-						-- try to enable treesitter features in case the parser exists but is not available from `nvim-treesitter`
-						treesitter_try_attach(buf, language)
-					end
-				end,
-			})
 		end,
 	},
 	{
@@ -1460,23 +1455,24 @@ local function find_godot_project_root()
 	return nil
 end
 
--- Function to check if server is already running
-local function is_server_running(project_path)
-	local server_pipe = project_path .. "/server.pipe"
-	return vim.uv.fs_stat(server_pipe) ~= nil
-end
+-- paths to check for project.godot file
+local paths_to_check = { "/", "/../" }
+local is_godot_project = false
+local godot_project_path = ""
+local cwd = vim.fn.getcwd()
 
--- Function to start Godot server if needed
-local function start_godot_server_if_needed()
-	local godot_project_path = find_godot_project_root()
-
-	if godot_project_path and not is_server_running(godot_project_path) then
-		vim.fn.serverstart(godot_project_path .. "/server.pipe")
-		return true
+-- iterate over paths and check
+for key, value in pairs(paths_to_check) do
+	if vim.uv.fs_stat(cwd .. value .. "project.godot") then
+		is_godot_project = true
+		godot_project_path = cwd .. value
+		break
 	end
-
-	return false
 end
 
--- Main execution
-start_godot_server_if_needed()
+-- check if server is already running in godot project path
+local is_server_running = vim.uv.fs_stat(godot_project_path .. "/server.pipe")
+-- start server, if not already running
+if is_godot_project and not is_server_running then
+	vim.fn.serverstart(godot_project_path .. "/server.pipe")
+end
